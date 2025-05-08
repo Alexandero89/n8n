@@ -105,6 +105,7 @@ const emit = defineEmits<{
 	'create:workflow': [];
 	'drag-and-drop': [position: XYPosition, event: DragEvent];
 	'tidy-up': [CanvasLayoutEvent];
+	'custom_filter_by:test': [id: string];
 	'viewport:change': [viewport: ViewportTransform, dimensions: Dimensions];
 	'selection:end': [position: XYPosition];
 	'custom_filter_by:test': [ids: string[]];

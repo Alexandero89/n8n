@@ -145,7 +145,6 @@ function onDocumentVisibilityChange() {
 	if (document.visibilityState === 'hidden') {
 		executionsStore.stopAutoRefreshInterval();
 	} else {
-		console.log('onDocumentVisibilityChange2');
 		void executionsStore.startAutoRefreshInterval(workflowId.value);
 	}
 }
