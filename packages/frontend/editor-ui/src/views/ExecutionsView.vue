@@ -53,6 +53,8 @@ onBeforeUnmount(() => {
 
 async function loadWorkflows() {
 	try {
+		console.log('FOOOOOO');
+
 		await workflowsStore.fetchAllWorkflows(route.params?.projectId as string | undefined);
 	} catch (error) {
 		toast.showError(error, i18n.baseText('executionsList.showError.loadWorkflows.title'));
@@ -63,6 +65,7 @@ function onDocumentVisibilityChange() {
 	if (document.visibilityState === 'hidden') {
 		executionsStore.stopAutoRefreshInterval();
 	} else {
+		console.log('onDocumentVisibilityChange');
 		void executionsStore.startAutoRefreshInterval();
 	}
 }
@@ -78,6 +81,7 @@ async function onRefreshData() {
 async function onUpdateFilters(newFilters: ExecutionFilterType) {
 	executionsStore.reset();
 	executionsStore.setFilters(newFilters);
+	console.log('onUpdateFilters');
 	await executionsStore.initialize();
 }
 

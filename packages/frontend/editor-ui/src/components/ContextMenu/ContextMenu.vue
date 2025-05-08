@@ -24,6 +24,11 @@ watch(
 
 function onActionSelect(item: string) {
 	const action = item as ContextMenuAction;
+	// Add handling logic for your new action
+	if (action === 'custom_filter_by') {
+		// Example: Emit an event, call a function, or trigger a state change
+		console.log('Custom Filter By action triggered');
+	}
 	contextMenu._dispatchAction(action);
 	emit('action', action, contextMenu.targetNodeIds.value);
 }
@@ -58,6 +63,19 @@ function onVisibleChange(open: boolean) {
 				<template #activator>
 					<div :class="$style.activator"></div>
 				</template>
+
+				<template #item="{ item }">
+					<div :class="[$style.menuItem, { [$style.hasChildren]: item.children }]">
+						{{ item.label }}
+						<div v-if="item.children" :class="$style.submenu">
+							<N8nActionDropdown
+								:items="item.children"
+								placement="right-start"
+								@select="onActionSelect"
+							/>
+						</div>
+					</div>
+				</template>
 			</N8nActionDropdown>
 		</div>
 	</Teleport>
@@ -67,9 +85,31 @@ function onVisibleChange(open: boolean) {
 .contextMenu {
 	position: fixed;
 }
-
 .activator {
 	pointer-events: none;
 	opacity: 0;
+}
+.menuItem {
+	position: relative;
+
+	// Only show submenu when hovering the menuItem
+	&:hover .submenu {
+		display: block;
+	}
+}
+
+.hasChildren {
+	cursor: pointer;
+}
+
+.submenu {
+	display: none; /* hidden by default */
+	position: absolute;
+	left: 100%;
+	top: 0;
+	z-index: 1000;
+	background: white;
+	border: 1px solid #ddd;
+	min-width: 150px;
 }
 </style>
