@@ -63,7 +63,7 @@ const emit = defineEmits<{
 	'update:modelValue': [elements: CanvasNode[]];
 	'update:node:position': [id: string, position: XYPosition];
 	'update:nodes:position': [events: CanvasNodeMoveEvent[]];
-	'update:node:activated': [id: string];
+	'update:node:activated': [id: string, event?: MouseEvent];
 	'update:node:deactivated': [id: string];
 	'update:node:enabled': [id: string];
 	'update:node:selected': [id?: string];
@@ -100,6 +100,7 @@ const emit = defineEmits<{
 	'drag-and-drop': [position: XYPosition, event: DragEvent];
 	'tidy-up': [CanvasLayoutEvent];
 	'custom_filter_by:test': [ids: string[]];
+	'open:sub-workflow': [nodeId: string];
 }>();
 
 const props = withDefaults(
@@ -271,6 +272,7 @@ function selectUpstreamNodes(id: string) {
 
 const keyMap = computed(() => {
 	const readOnlyKeymap = {
+		ctrl_shift_o: emitWithLastSelectedNode((id) => emit('open:sub-workflow', id)),
 		ctrl_c: emitWithSelectedNodes((ids) => emit('copy:nodes', ids)),
 		enter: emitWithLastSelectedNode((id) => onSetNodeActivated(id)),
 		ctrl_a: () => addSelectedNodes(graphNodes.value),
@@ -373,9 +375,9 @@ function onSelectionEnd() {
 	}
 }
 
-function onSetNodeActivated(id: string) {
+function onSetNodeActivated(id: string, event?: MouseEvent) {
 	props.eventBus.emit('nodes:action', { ids: [id], action: 'update:node:activated' });
-	emit('update:node:activated', id);
+	emit('update:node:activated', id, event);
 }
 
 function onSetNodeDeactivated(id: string) {
@@ -669,6 +671,9 @@ async function onContextMenuAction(action: ContextMenuAction, nodeIds: string[])
 		case 'custom_filter_by':
 			onCustomFilter({ ids: nodeIds });
 			return emit('custom_filter_by:test', nodeIds);
+		case 'open_sub_workflow': {
+			return emit('open:sub-workflow', nodeIds[0]);
+		}
 	}
 }
 
