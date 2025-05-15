@@ -1,9 +1,5 @@
 import type { ActionDropdownItem, XYPosition, INodeUi } from '@/Interface';
-import {
-	NOT_DUPLICATABLE_NODE_TYPES,
-	STICKY_NODE_TYPE,
-	EXECUTE_WORKFLOW_NODE_TYPE,
-} from '@/constants';
+import { NOT_DUPLICATABLE_NODE_TYPES, STICKY_NODE_TYPE } from '@/constants';
 import { useNodeTypesStore } from '@/stores/nodeTypes.store';
 import { useSourceControlStore } from '@/stores/sourceControl.store';
 import { useUIStore } from '@/stores/ui.store';
@@ -71,9 +67,10 @@ export const useContextMenu = (onAction: ContextMenuActionCallback = () => {}) =
 		if (targetNodes.value.length !== 1) return false;
 
 		const node = targetNodes.value[0];
-		if (node.type !== EXECUTE_WORKFLOW_NODE_TYPE) return false;
 
-		return NodeHelpers.getSubworkflowId(node);
+		if (!NodeHelpers.isNodeWithWorkflowSelector(node)) return false;
+
+		return !!NodeHelpers.getSubworkflowId(node);
 	});
 
 	const targetNodeIds = computed(() => {
@@ -252,7 +249,6 @@ export const useContextMenu = (onAction: ContextMenuActionCallback = () => {}) =
 			].filter(Boolean) as ActionDropdownItem[];
 
 			if (nodes.length === 1) {
-				const isExecuteWorkflowNode = nodes[0].type === EXECUTE_WORKFLOW_NODE_TYPE;
 				const singleNodeActions: ActionDropdownItem[] = onlyStickies
 					? [
 							{
@@ -286,7 +282,7 @@ export const useContextMenu = (onAction: ContextMenuActionCallback = () => {}) =
 							},
 						];
 
-				if (isExecuteWorkflowNode) {
+				if (NodeHelpers.isNodeWithWorkflowSelector(nodes[0])) {
 					singleNodeActions.push({
 						id: 'open_sub_workflow',
 						label: i18n.baseText('contextMenu.openSubworkflow'),
