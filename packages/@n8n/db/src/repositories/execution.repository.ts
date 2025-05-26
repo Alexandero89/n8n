@@ -1063,15 +1063,13 @@ export class ExecutionRepository extends Repository<ExecutionEntity> {
 		}
 		console.log('in execution.repository : SUBQuery2 ', subQuery.getQueryAndParameters());
 
-		let finalQuery = this.manager
+		const qb = this.manager
 			.createQueryBuilder()
 			.select(['e.*', 'ate.id AS "annotation_tags_id"', 'ate.name AS "annotation_tags_name"'])
 			.from(`(${subQuery.getQuery()})`, 'e')
 			.setParameters(subQuery.getParameters())
 			.leftJoin(AnnotationTagMapping, 'atm', 'atm.annotationId = e.annotation_id')
 			.leftJoin(AnnotationTagEntity, 'ate', 'ate.id = atm.tagId');
-		console.log('in execution.repository : finalQuery ', finalQuery.getQueryAndParameters());
-		return finalQuery;
 	}
 
 	async getAllIds() {
