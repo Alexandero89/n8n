@@ -68,6 +68,7 @@ export const schemaGetExecutionsQueryFilter = {
 		startedAfter: { type: 'date-time' },
 		startedBefore: { type: 'date-time' },
 		annotationTags: { type: 'array', items: { type: 'string' } },
+		nodesExecuted: { type: 'array', items: { type: 'string' } },
 		vote: { type: 'string' },
 		projectId: { type: 'string' },
 	},

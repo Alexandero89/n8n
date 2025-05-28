@@ -134,9 +134,12 @@ export const useExecutionsStore = defineStore('executions', () => {
 		filters.value = value;
 	}
 
-	async function initialize(workflowId?: string) {
+	async function initialize(workflowId?: string, nodesExecuted?: string[]) {
 		if (workflowId) {
 			filters.value.workflowId = workflowId;
+		}
+		if (nodesExecuted) {
+			filters.value.nodesExecuted = nodesExecuted;
 		}
 		await fetchExecutions();
 		await startAutoRefreshInterval(workflowId);
@@ -147,6 +150,7 @@ export const useExecutionsStore = defineStore('executions', () => {
 		lastId?: string,
 		firstId?: string,
 	) {
+		console.log('execution.store.ts : fetchExecutions', filter);
 		loading.value = true;
 		try {
 			const data = await makeRestApiRequest<IExecutionsListResponse>(

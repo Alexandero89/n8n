@@ -42,6 +42,13 @@ const workflowId = computed(() => {
 
 const executionId = computed(() => route.params.executionId as string);
 
+const customFilter = computed(() => {
+	const param = route.query.custom_filter;
+	if (typeof param === 'string') return [param];
+	if (Array.isArray(param)) return param;
+	return [];
+});
+
 const executions = computed(() =>
 	workflowId.value
 		? [
@@ -72,13 +79,35 @@ watch(
 );
 
 onMounted(async () => {
+	console.log('WorkflowExecutionsView.vue loaded', workflowId, customFilter);
+
 	await Promise.all([nodeTypesStore.loadNodeTypesIfNotLoaded(), fetchWorkflow()]);
 
 	if (workflowId.value) {
-		await Promise.all([executionsStore.initialize(workflowId.value), fetchExecution()]);
+		if (customFilter.value) {
+			await Promise.all([
+				executionsStore.initialize(
+					workflowId.value,
+					customFilter.value.filter(Boolean) as string[],
+				),
+				fetchExecution(),
+			]);
+		} else {
+			await Promise.all([executionsStore.initialize(workflowId.value), fetchExecution()]);
+		}
 	}
 
 	await initializeRoute();
+	console.log('Route Params');
+	console.log(route.params);
+	console.log('Route');
+	console.log(route);
+
+	if (customFilter.value) {
+		console.log('Custom Filter');
+		console.log(customFilter.value);
+	}
+
 	document.addEventListener('visibilitychange', onDocumentVisibilityChange);
 });
 
@@ -116,7 +145,7 @@ function onDocumentVisibilityChange() {
 	if (document.visibilityState === 'hidden') {
 		executionsStore.stopAutoRefreshInterval();
 	} else {
-		console.log('onDocumentVisibilityChange');
+		console.log('onDocumentVisibilityChange2');
 		void executionsStore.startAutoRefreshInterval(workflowId.value);
 	}
 }
@@ -169,6 +198,7 @@ async function onRefreshData() {
 		await executionsStore.fetchExecutions({
 			...executionsStore.executionsFilters,
 			workflowId: workflowId.value,
+			nodesExecuted: customFilter.value.filter(Boolean) as string[],
 		});
 	} catch (error) {
 		if (error.errorCode === NO_NETWORK_ERROR_CODE) {
@@ -189,6 +219,8 @@ async function onRefreshData() {
 
 async function onUpdateFilters(newFilters: ExecutionFilterType) {
 	executionsStore.reset();
+	console.log('onUpdateFilters');
+	console.log(newFilters);
 	executionsStore.setFilters(newFilters);
 	await executionsStore.initialize(workflowId.value);
 }

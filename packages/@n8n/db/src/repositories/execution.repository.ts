@@ -842,6 +842,7 @@ export class ExecutionRepository extends Repository<ExecutionEntity> {
 	}
 
 	async findManyByRangeQuery(query: ExecutionSummaries.RangeQuery): Promise<ExecutionSummary[]> {
+		console.log('in executionrepository : findManyByRangeQuery ', query);
 		if (query?.accessibleWorkflowIds?.length === 0) {
 			throw new UnexpectedError('Expected accessible workflow IDs');
 		}
@@ -946,6 +947,7 @@ export class ExecutionRepository extends Repository<ExecutionEntity> {
 			annotationTags,
 			vote,
 			projectId,
+			nodesExecuted,
 		} = query;
 
 		const fields = Object.keys(this.summaryFields)
@@ -956,6 +958,9 @@ export class ExecutionRepository extends Repository<ExecutionEntity> {
 		const qb = this.createQueryBuilder('execution')
 			.select(fields)
 			.innerJoin('execution.workflow', 'workflow')
+			// Add join to execution_data in the query builder
+			// TODO: This should be handled better in the future, as it is not needed for all queries
+			.innerJoin('execution_data', 'execution_data', 'execution.id = execution_data.executionId')
 			.where('execution.workflowId IN (:...accessibleWorkflowIds)', { accessibleWorkflowIds });
 
 		if (query.kind === 'range') {
@@ -1023,7 +1028,16 @@ export class ExecutionRepository extends Repository<ExecutionEntity> {
 				.innerJoin(SharedWorkflow, 'sw', 'sw.workflowId = w.id')
 				.andWhere('sw.projectId = :projectId', { projectId });
 		}
-
+		if (query.nodesExecuted && query.nodesExecuted.length > 0) {
+			const idConditions: string[] = [];
+			query.nodesExecuted.forEach((node, idx) => {
+				idConditions.push(
+					`json_type(json_extract(execution_data.data, '$[4].' || :nodeName${idx})) IS NOT NULL`,
+				);
+				qb.setParameter(`nodeName${idx}`, node);
+			});
+			qb.andWhere('(' + idConditions.join(' OR ') + ')');
+		}
 		return qb;
 	}
 
@@ -1040,21 +1054,24 @@ export class ExecutionRepository extends Repository<ExecutionEntity> {
 		);
 
 		const subQuery = this.toQueryBuilder(query).addSelect(annotationFields);
-
+		console.log('in execution.repository : SUBQuery1 ', subQuery.getQueryAndParameters());
 		// Ensure the join with annotations is made only once
 		// It might be already present as an inner join if the query includes filter by annotation tags
 		// If not, it must be added as a left join
 		if (!subQuery.expressionMap.joinAttributes.some((join) => join.alias.name === 'annotation')) {
 			subQuery.leftJoin('execution.annotation', 'annotation');
 		}
+		console.log('in execution.repository : SUBQuery2 ', subQuery.getQueryAndParameters());
 
-		return this.manager
+		let finalQuery = this.manager
 			.createQueryBuilder()
 			.select(['e.*', 'ate.id AS "annotation_tags_id"', 'ate.name AS "annotation_tags_name"'])
 			.from(`(${subQuery.getQuery()})`, 'e')
 			.setParameters(subQuery.getParameters())
 			.leftJoin(AnnotationTagMapping, 'atm', 'atm.annotationId = e.annotation_id')
 			.leftJoin(AnnotationTagEntity, 'ate', 'ate.id = atm.tagId');
+		console.log('in execution.repository : finalQuery ', finalQuery.getQueryAndParameters());
+		return finalQuery;
 	}
 
 	async getAllIds() {

@@ -37,12 +37,22 @@ export class ExecutionsController {
 	@Get('/', { middlewares: [parseRangeQuery] })
 	async getMany(req: ExecutionRequest.GetMany) {
 		const accessibleWorkflowIds = await this.getAccessibleWorkflowIds(req.user, 'workflow:read');
-
+		console.log('in execution controller : getMany');
 		if (accessibleWorkflowIds.length === 0) {
 			return { count: 0, estimated: false, results: [] };
 		}
 
 		const { rangeQuery: query } = req;
+
+		if (query.nodesExecuted) {
+			if (typeof query.nodesExecuted === 'string') {
+				query.nodesExecuted = [query.nodesExecuted];
+			} else if (Array.isArray(query.nodesExecuted)) {
+				query.nodesExecuted = query.nodesExecuted.filter((n) => typeof n === 'string');
+			} else {
+				query.nodesExecuted = [];
+			}
+		}
 
 		if (query.workflowId && !accessibleWorkflowIds.includes(query.workflowId)) {
 			return { count: 0, estimated: false, results: [] };

@@ -182,6 +182,7 @@ export type CanvasEventBusEvents = {
 		payload?: CanvasNodeEventBusEvents[keyof CanvasNodeEventBusEvents];
 	};
 	tidyUp: { source: CanvasLayoutSource };
+	'custom_filter_by:test': { ids: string[] };
 };
 
 export interface CanvasNodeInjectionData {

@@ -52,8 +52,12 @@ import CanvasArrowHeadMarker from './elements/edges/CanvasArrowHeadMarker.vue';
 import Edge from './elements/edges/CanvasEdge.vue';
 import Node from './elements/nodes/CanvasNode.vue';
 import { useViewportAutoAdjust } from '@/components/canvas/composables/useViewportAutoAdjust';
+import { useRouter, useRoute } from 'vue-router';
 
 const $style = useCssModule();
+
+const router = useRouter();
+const route = useRoute();
 
 const emit = defineEmits<{
 	'update:modelValue': [elements: CanvasNode[]];
@@ -95,7 +99,7 @@ const emit = defineEmits<{
 	'create:workflow': [];
 	'drag-and-drop': [position: XYPosition, event: DragEvent];
 	'tidy-up': [CanvasLayoutEvent];
-	'custom_filter_by:test': [id: string];
+	'custom_filter_by:test': [ids: string[]];
 }>();
 
 const props = withDefaults(
@@ -663,8 +667,20 @@ async function onContextMenuAction(action: ContextMenuAction, nodeIds: string[])
 		case 'tidy_up':
 			return await onTidyUp({ source: 'context-menu' });
 		case 'custom_filter_by':
-			return emit('custom_filter_by:test', nodeIds[0]);
+			onCustomFilter({ ids: nodeIds });
+			return emit('custom_filter_by:test', nodeIds);
 	}
+}
+
+async function onCustomFilter(input: { ids: string[] }) {
+	const workflowId = route.params.name as string;
+	if (!workflowId || !input || !input.ids || input.ids.length === 0) return;
+
+	const customFilter = nodeDataById.value[input.ids[0]]?.name;
+	router.push({
+		path: `/workflow/${workflowId}/executions/`,
+		query: { custom_filter: customFilter },
+	});
 }
 
 async function onTidyUp(payload: { source: CanvasLayoutSource }) {
@@ -755,6 +771,7 @@ onMounted(() => {
 	props.eventBus.on('fitView', onFitView);
 	props.eventBus.on('nodes:select', onSelectNodes);
 	props.eventBus.on('tidyUp', onTidyUp);
+	props.eventBus.on('custom_filter_by:test', onCustomFilter);
 	window.addEventListener('blur', onWindowBlur);
 });
 
@@ -762,6 +779,7 @@ onUnmounted(() => {
 	props.eventBus.off('fitView', onFitView);
 	props.eventBus.off('nodes:select', onSelectNodes);
 	props.eventBus.off('tidyUp', onTidyUp);
+	props.eventBus.off('custom_filter_by:test', onCustomFilter);
 	window.removeEventListener('blur', onWindowBlur);
 });
 

@@ -21,6 +21,7 @@ export function getDefaultExecutionFilters(): ExecutionFilterType {
 		startDate: '',
 		endDate: '',
 		tags: [],
+		nodesExecuted: [],
 		annotationTags: [],
 		metadata: [],
 		vote: 'all',
@@ -49,6 +50,9 @@ export const executionFilterToQueryFilter = (
 
 	if (!isEmpty(filter.metadata)) {
 		queryFilter.metadata = filter.metadata;
+	}
+	if (!isEmpty(filter.nodesExecuted)) {
+		queryFilter.nodesExecuted = filter.nodesExecuted;
 	}
 
 	if (!!filter.startDate) {

@@ -1372,6 +1372,7 @@ export type ExecutionFilterType = {
 	workflowId: string;
 	startDate: string | Date;
 	endDate: string | Date;
+	nodesExecuted: string[];
 	tags: string[];
 	annotationTags: string[];
 	vote: ExecutionFilterVote;
@@ -1382,6 +1383,7 @@ export type ExecutionsQueryFilter = {
 	status?: ExecutionStatus[];
 	projectId?: string;
 	workflowId?: string;
+	nodesExecuted?: string[];
 	finished?: boolean;
 	waitTill?: boolean;
 	metadata?: Array<{ key: string; value: string }>;
