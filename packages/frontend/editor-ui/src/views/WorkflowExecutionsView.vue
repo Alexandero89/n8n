@@ -79,8 +79,6 @@ watch(
 );
 
 onMounted(async () => {
-	console.log('WorkflowExecutionsView.vue loaded', workflowId, customFilter);
-
 	await Promise.all([nodeTypesStore.loadNodeTypesIfNotLoaded(), fetchWorkflow()]);
 
 	if (workflowId.value) {
@@ -98,16 +96,6 @@ onMounted(async () => {
 	}
 
 	await initializeRoute();
-	console.log('Route Params');
-	console.log(route.params);
-	console.log('Route');
-	console.log(route);
-
-	if (customFilter.value) {
-		console.log('Custom Filter');
-		console.log(customFilter.value);
-	}
-
 	document.addEventListener('visibilitychange', onDocumentVisibilityChange);
 });
 
@@ -145,6 +133,7 @@ function onDocumentVisibilityChange() {
 	if (document.visibilityState === 'hidden') {
 		executionsStore.stopAutoRefreshInterval();
 	} else {
+		console.log('onDocumentVisibilityChange');
 		void executionsStore.startAutoRefreshInterval(workflowId.value);
 	}
 }

@@ -105,12 +105,12 @@ const emit = defineEmits<{
 	'create:workflow': [];
 	'drag-and-drop': [position: XYPosition, event: DragEvent];
 	'tidy-up': [CanvasLayoutEvent];
-	'custom_filter_by:test': [id: string];
 	'viewport:change': [viewport: ViewportTransform, dimensions: Dimensions];
 	'selection:end': [position: XYPosition];
 	'custom_filter_by:test': [ids: string[]];
 	'open:sub-workflow': [nodeId: string];
 	'start-chat': [];
+	'custom_filter_by:test': [ids: string[]];
 }>();
 
 const props = withDefaults(
@@ -702,8 +702,7 @@ async function onContextMenuAction(action: ContextMenuAction, nodeIds: string[])
 		case 'tidy_up':
 			return await onTidyUp({ source: 'context-menu' });
 		case 'custom_filter_by':
-			onCustomFilter({ ids: nodeIds });
-			return emit('custom_filter_by:test', nodeIds);
+			return emit('custom_filter_by:test', nodeIds[0]);
 		case 'open_sub_workflow': {
 			return emit('open:sub-workflow', nodeIds[0]);
 		}
