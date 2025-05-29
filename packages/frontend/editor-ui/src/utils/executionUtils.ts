@@ -108,7 +108,7 @@ export const openFormPopupWindow = (url: string) => {
 
 export const clearPopupWindowState = () => (formPopupWindow = false);
 
-export function displayForm({
+export async function displayForm({
 	nodes,
 	runData,
 	pinData,
@@ -142,6 +142,14 @@ export function displayForm({
 		if (node.name === destinationNode || !node.disabled) {
 			let testUrl = '';
 			if (node.type === FORM_TRIGGER_NODE_TYPE) testUrl = getTestUrl(node);
+
+			try {
+				const res = await fetch(testUrl, { method: 'GET' });
+				if (!res.ok) continue;
+			} catch (error) {
+				continue;
+			}
+
 			if (testUrl && source !== 'RunData.ManualChatMessage') {
 				clearPopupWindowState();
 				openFormPopupWindow(testUrl);
