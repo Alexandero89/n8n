@@ -54,6 +54,10 @@ import CanvasArrowHeadMarker from './elements/edges/CanvasArrowHeadMarker.vue';
 import Edge from './elements/edges/CanvasEdge.vue';
 import Node from './elements/nodes/CanvasNode.vue';
 import { useViewportAutoAdjust } from '@/components/canvas/composables/useViewportAutoAdjust';
+import { useRouter, useRoute } from 'vue-router';
+
+const router = useRouter();
+const route = useRoute();
 
 const $style = useCssModule();
 
@@ -105,6 +109,7 @@ const emit = defineEmits<{
 	'selection:end': [position: XYPosition];
 	'open:sub-workflow': [nodeId: string];
 	'start-chat': [];
+	'custom_filter_by:test': [ids: string[]];
 }>();
 
 const props = withDefaults(
@@ -650,6 +655,16 @@ function onOpenSelectionContextMenu({ event }: { event: MouseEvent }) {
 	onOpenContextMenu(event);
 }
 
+async function onCustomFilter(input: { ids: string[] }) {
+	const workflowId = route.params.name as string;
+	if (!workflowId || !input || !input.ids || input.ids.length === 0) return;
+	const customFilter = nodeDataById.value[input.ids[0]]?.name;
+	router.push({
+		path: `/workflow/${workflowId}/executions/`,
+		query: { custom_filter: customFilter },
+	});
+}
+
 function onOpenNodeContextMenu(
 	id: string,
 	event: MouseEvent,
@@ -698,6 +713,9 @@ async function onContextMenuAction(action: ContextMenuAction, nodeIds: string[])
 		case 'open_sub_workflow': {
 			return emit('open:sub-workflow', nodeIds[0]);
 		}
+		case 'custom_filter_by':
+			onCustomFilter({ ids: nodeIds });
+			return emit('custom_filter_by:test', nodeIds);
 	}
 }
 
@@ -789,6 +807,7 @@ onMounted(() => {
 	props.eventBus.on('fitView', onFitView);
 	props.eventBus.on('nodes:select', onSelectNodes);
 	props.eventBus.on('tidyUp', onTidyUp);
+	props.eventBus.on('custom_filter_by:test', onCustomFilter);
 	window.addEventListener('blur', onWindowBlur);
 });
 
@@ -796,6 +815,7 @@ onUnmounted(() => {
 	props.eventBus.off('fitView', onFitView);
 	props.eventBus.off('nodes:select', onSelectNodes);
 	props.eventBus.off('tidyUp', onTidyUp);
+	props.eventBus.off('custom_filter_by:test', onCustomFilter);
 	window.removeEventListener('blur', onWindowBlur);
 });
 

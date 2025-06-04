@@ -34,7 +34,8 @@ export type ContextMenuAction =
 	| 'add_sticky'
 	| 'change_color'
 	| 'open_sub_workflow'
-	| 'tidy_up';
+	| 'tidy_up'
+	| 'custom_filter_by';
 
 const position = ref<XYPosition>([0, 0]);
 const isOpen = ref(false);
@@ -229,6 +230,22 @@ export const useContextMenu = (onAction: ContextMenuActionCallback = () => {}) =
 					label: i18n.baseText('contextMenu.delete', i18nOptions),
 					shortcut: { keys: ['Del'] },
 					disabled: isReadOnly.value,
+				},
+
+				{
+					id: 'custom_filter_by',
+					label: i18n.baseText('contextMenu.customFilterBy'),
+					disabled: false,
+					children: [
+						{
+							id: 'filter_was_run',
+							label: i18n.baseText('contextMenu.filterWasRun'),
+						},
+						{
+							id: 'filter_was_not_active',
+							label: i18n.baseText('contextMenu.filterWasNotActive'),
+						},
+					],
 				},
 			].filter(Boolean) as ActionDropdownItem[];
 
