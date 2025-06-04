@@ -36,7 +36,8 @@ export type ContextMenuAction =
 	| 'open_sub_workflow'
 	| 'tidy_up'
 	| 'custom_filter_by'
-	| 'extract_sub_workflow';
+	| 'extract_sub_workflow'
+	| 'custom_filter_by';
 
 const position = ref<XYPosition>([0, 0]);
 const isOpen = ref(false);

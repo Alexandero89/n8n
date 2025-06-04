@@ -111,6 +111,7 @@ const emit = defineEmits<{
 	'start-chat': [];
 	'custom_filter_by:test': [ids: string[]];
 	'extract-workflow': [ids: string[]];
+	'custom_filter_by:test': [ids: string[]];
 }>();
 
 const props = withDefaults(
