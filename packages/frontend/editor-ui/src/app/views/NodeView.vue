@@ -492,6 +492,18 @@ function onOpenSubWorkflow(id: string) {
 	tryToOpenSubworkflowInNewTab(id);
 }
 
+function onFilterExecutionsByNode(nodeId: string) {
+	if (isDemoRoute.value) {
+		window.parent.postMessage(JSON.stringify({ command: 'filterExecutionsByNode', nodeId }), '*');
+		return;
+	}
+	void router.push({
+		name: VIEWS.EXECUTION_HOME,
+		params: { name: workflowId.value },
+		query: { nodesExecuted: nodeId },
+	});
+}
+
 function onSetNodeDeactivated() {
 	clearNodeActive();
 }
@@ -1773,6 +1785,7 @@ onBeforeUnmount(() => {
 			@update:logs:output-open="logsStore.toggleOutputOpen"
 			@update:has-range-selection="canvasStore.setHasRangeSelection"
 			@open:sub-workflow="onOpenSubWorkflow"
+			@filter:executions:by-node="onFilterExecutionsByNode"
 			@click:node="onClickNode"
 			@click:node:add="onClickNodeAdd"
 			@run:node="onRunWorkflowToNode"

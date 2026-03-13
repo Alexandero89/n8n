@@ -70,6 +70,7 @@ const getDefaultFilter = (): ExecutionFilterType => ({
 	endDate: '',
 	metadata: [{ key: '', value: '', exactMatch: false }],
 	vote: 'all',
+	nodesExecuted: [],
 });
 const filter = reactive(getDefaultFilter());
 

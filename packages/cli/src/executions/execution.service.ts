@@ -76,6 +76,7 @@ export const schemaGetExecutionsQueryFilter = {
 		annotationTags: { type: 'array', items: { type: 'string' } },
 		vote: { type: 'string' },
 		projectId: { type: 'string' },
+		nodesExecuted: { type: 'array', items: { type: 'string' } },
 	},
 	$defs: {
 		metadata: {

@@ -74,10 +74,47 @@ watch(
 	},
 );
 
+function resolveNodeIdsToNames(nodeIds: string[]): string[] {
+	if (!workflow.value) return nodeIds;
+	return nodeIds.map((id) => {
+		const node = workflow.value?.nodes.find((n) => n.id === id);
+		return node?.name ?? id;
+	});
+}
+
+function applyNodesExecutedFilter() {
+	const nodesExecutedParam = route.query.nodesExecuted;
+	if (nodesExecutedParam) {
+		const nodeIds = Array.isArray(nodesExecutedParam)
+			? nodesExecutedParam.filter((n): n is string => typeof n === 'string')
+			: [nodesExecutedParam as string];
+		const nodesExecuted = resolveNodeIdsToNames(nodeIds);
+		executionsStore.setFilters({
+			...executionsStore.filters,
+			nodesExecuted,
+		});
+	} else if (executionsStore.filters.nodesExecuted.length > 0) {
+		executionsStore.setFilters({
+			...executionsStore.filters,
+			nodesExecuted: [],
+		});
+	}
+}
+
+watch(
+	() => route.query.nodesExecuted,
+	async () => {
+		applyNodesExecutedFilter();
+		executionsStore.reset();
+		await executionsStore.initialize(workflowId.value);
+	},
+);
+
 onMounted(async () => {
 	fetchWorkflow();
 
 	if (workflowId.value) {
+		applyNodesExecutedFilter();
 		await Promise.all([executionsStore.initialize(workflowId.value), fetchExecution()]);
 	}
 

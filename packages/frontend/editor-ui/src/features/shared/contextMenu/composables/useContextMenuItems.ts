@@ -43,7 +43,8 @@ export type ContextMenuAction =
 	| 'open_sub_workflow'
 	| 'tidy_up'
 	| 'extract_sub_workflow'
-	| 'focus_ai_on_selected';
+	| 'focus_ai_on_selected'
+	| 'filter_executions_by';
 
 type Item = ActionDropdownItem<ContextMenuAction>;
 
@@ -321,6 +322,14 @@ export function useContextMenuItems(targetNodeIds: ComputedRef<string[]>): Compu
 						label: i18n.baseText('contextMenu.openSubworkflow'),
 						shortcut: { shiftKey: true, metaKey: true, keys: ['O'] },
 						disabled: !canOpenSubworkflow.value,
+					});
+				}
+
+				if (!onlyStickies) {
+					singleNodeActions.push({
+						id: 'filter_executions_by',
+						divided: true,
+						label: i18n.baseText('contextMenu.filterExecutionsByNode'),
 					});
 				}
 				// Add actions only available for a single node

@@ -82,6 +82,7 @@ export interface IGetExecutionsQueryFilter {
 	metadata?: Array<{ key: string; value: string; exactMatch?: boolean }>;
 	startedAfter?: string;
 	startedBefore?: string;
+	nodesExecuted?: string[];
 }
 
 export type ExecutionDeletionCriteria = {
@@ -972,6 +973,7 @@ export class ExecutionRepository extends Repository<ExecutionEntity> {
 			annotationTags,
 			vote,
 			projectId,
+			nodesExecuted,
 		} = query;
 
 		const fields = Object.keys(this.summaryFields)
@@ -1049,6 +1051,20 @@ export class ExecutionRepository extends Repository<ExecutionEntity> {
 			qb.innerJoin(WorkflowEntity, 'w', 'w.id = execution.workflowId')
 				.innerJoin(SharedWorkflow, 'sw', 'sw.workflowId = w.id')
 				.andWhere('sw.projectId = :projectId', { projectId });
+		}
+
+		if (nodesExecuted?.length) {
+			qb.innerJoin(ExecutionData, 'ed', 'ed.executionId = execution.id');
+
+			qb.andWhere(
+				new Brackets((qb2: SelectQueryBuilder<ExecutionEntity>) => {
+					for (let i = 0; i < nodesExecuted.length; i++) {
+						qb2.orWhere(`ed.data LIKE :nodePattern_${i}`, {
+							[`nodePattern_${i}`]: `%"${nodesExecuted[i]}"%`,
+						});
+					}
+				}),
+			);
 		}
 
 		return qb;

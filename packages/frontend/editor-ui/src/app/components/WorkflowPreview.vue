@@ -40,6 +40,7 @@ const props = withDefaults(
 const emit = defineEmits<{
 	close: [];
 	ready: [];
+	'filter:executions:by-node': [nodeId: string];
 }>();
 
 const i18n = useI18n();
@@ -155,6 +156,8 @@ const receiveMessage = ({ data }: MessageEvent) => {
 			onOpenNDV();
 		} else if (json.command === 'closeNDV') {
 			onCloseNDV();
+		} else if (json.command === 'filterExecutionsByNode') {
+			emit('filter:executions:by-node', json.nodeId as string);
 		} else if (json.command === 'error') {
 			onError();
 		}

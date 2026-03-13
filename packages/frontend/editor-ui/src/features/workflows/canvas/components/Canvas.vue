@@ -128,6 +128,7 @@ const emit = defineEmits<{
 	'viewport:change': [viewport: ViewportTransform, dimensions: Dimensions];
 	'selection:end': [position: XYPosition];
 	'open:sub-workflow': [nodeId: string];
+	'filter:executions:by-node': [nodeId: string];
 	'start-chat': [];
 	'extract-workflow': [ids: string[]];
 }>();
@@ -840,6 +841,10 @@ async function onContextMenuAction(action: ContextMenuAction, nodeIds: string[])
 		case 'focus_ai_on_selected': {
 			focusedNodesStore.confirmNodes(nodeIds, 'context_menu');
 			void chatPanelStore.open({ mode: 'builder' });
+			return;
+		}
+		case 'filter_executions_by': {
+			emit('filter:executions:by-node', nodeIds[0]);
 			return;
 		}
 	}
