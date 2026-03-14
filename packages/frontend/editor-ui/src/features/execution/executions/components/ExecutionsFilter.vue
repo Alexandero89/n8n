@@ -9,6 +9,7 @@ import type { IWorkflowDb, IWorkflowShortResponse } from '@/Interface';
 import type { ExecutionFilterMetadata, ExecutionFilterType } from '../executions.types';
 import { i18n as locale } from '@n8n/i18n';
 import { useSettingsStore } from '@/app/stores/settings.store';
+import { useExecutionsStore } from '../executions.store';
 import { isEmpty } from '@/app/utils/typesUtils';
 import { computed, onBeforeMount, reactive, ref, watch } from 'vue';
 import { I18nT } from 'vue-i18n';
@@ -36,6 +37,7 @@ export type ExecutionFilterProps = {
 const DATE_TIME_MASK = 'YYYY-MM-DD HH:mm';
 
 const settingsStore = useSettingsStore();
+const executionsStore = useExecutionsStore();
 const { debounce } = useDebounce();
 
 const telemetry = useTelemetry();
@@ -78,8 +80,8 @@ const filter = reactive(getDefaultFilter());
 watch(
 	filter,
 	(newFilter) => {
-		// Use debounced emit if filter contains date changes to prevent rapid API calls
-		if (newFilter.startDate || newFilter.endDate) {
+		// Use debounced emit for text inputs to prevent rapid API calls while typing
+		if (newFilter.startDate || newFilter.endDate || !isEmpty(newFilter.nodesExecuted)) {
 			debouncedEmit('filterChanged', newFilter);
 		} else {
 			emit('filterChanged', newFilter);
@@ -114,6 +116,7 @@ const countSelectedFilterProps = computed(() => {
 		!isEmpty(filter.metadata),
 		!!filter.startDate,
 		!!filter.endDate,
+		!isEmpty(filter.nodesExecuted),
 	].filter(Boolean);
 
 	return nonDefaultFilters.length;
@@ -161,11 +164,26 @@ const goToUpgrade = () => {
 	void pageRedirectionHelper.goToUpgrade('custom-data-filter', 'upgrade-custom-data-filter');
 };
 
+const onNodeIdChange = (value: string) => {
+	filter.nodesExecuted = value.trim() ? [value.trim()] : [];
+};
+
 const onExactMatchChange = (e: string | number | boolean) => {
 	if (typeof e === 'boolean') {
 		onFilterMetaChange(0, 'exactMatch', e);
 	}
 };
+
+// Sync nodesExecuted from store (set externally via context menu)
+watch(
+	() => executionsStore.filters.nodesExecuted,
+	(storeNodes) => {
+		if (JSON.stringify(filter.nodesExecuted) !== JSON.stringify(storeNodes)) {
+			filter.nodesExecuted = [...storeNodes];
+		}
+	},
+	{ immediate: true },
+);
 
 onBeforeMount(() => {
 	isCustomDataFilterTracked.value = false;
@@ -281,6 +299,20 @@ onBeforeMount(() => {
 							data-test-id="executions-filter-end-date-picker"
 						/>
 					</div>
+				</div>
+				<div :class="$style.group">
+					<label for="execution-filter-node-id">{{
+						locale.baseText('executionsFilter.nodeId')
+					}}</label>
+					<N8nInput
+						id="execution-filter-node-id"
+						name="execution-filter-node-id"
+						type="text"
+						:placeholder="locale.baseText('executionsFilter.nodeIdPlaceholder')"
+						:model-value="filter.nodesExecuted[0] ?? ''"
+						data-test-id="execution-filter-node-id-input"
+						@update:model-value="onNodeIdChange"
+					/>
 				</div>
 				<div v-if="isAnnotationFiltersEnabled" :class="$style.group">
 					<label for="execution-filter-annotation-tags">{{

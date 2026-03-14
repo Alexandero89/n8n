@@ -1362,6 +1362,8 @@
 	"executionsFilter.savedDataKeyPlaceholder": "ID",
 	"executionsFilter.savedDataValue": "Value",
 	"executionsFilter.savedDataValuePlaceholder": "123",
+	"executionsFilter.nodeId": "Executed node",
+	"executionsFilter.nodeIdPlaceholder": "Enter node ID or name",
 	"executionsFilter.reset": "Reset all",
 	"executionsFilter.customData.inputTooltip": "Upgrade plan to filter executions by custom data set at runtime. {link}",
 	"executionsFilter.customData.inputTooltip.link": "View plans",

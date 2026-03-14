@@ -30,6 +30,7 @@ const { callDebounced } = useDebounce();
 
 const loading = ref(false);
 const loadingMore = ref(false);
+const updatingFilters = ref(false);
 
 const workflow = ref<IWorkflowDb | undefined>();
 
@@ -93,20 +94,17 @@ function applyNodesExecutedFilter() {
 			...executionsStore.filters,
 			nodesExecuted,
 		});
-	} else if (executionsStore.filters.nodesExecuted.length > 0) {
-		executionsStore.setFilters({
-			...executionsStore.filters,
-			nodesExecuted: [],
-		});
 	}
 }
 
 watch(
 	() => route.query.nodesExecuted,
 	async () => {
+		if (updatingFilters.value) return;
+		executionsStore.resetData();
 		applyNodesExecutedFilter();
-		executionsStore.reset();
 		await executionsStore.initialize(workflowId.value);
+		await initializeRoute();
 	},
 );
 
@@ -125,6 +123,10 @@ onMounted(async () => {
 onBeforeUnmount(() => {
 	executionsStore.reset();
 	document.removeEventListener('visibilitychange', onDocumentVisibilityChange);
+	if (route.query.nodesExecuted) {
+		const { nodesExecuted: _, ...remainingQuery } = route.query;
+		void router.replace({ ...route, query: remainingQuery });
+	}
 });
 
 async function fetchExecution() {
@@ -220,7 +222,28 @@ async function onRefreshData() {
 
 async function onUpdateFilters(newFilters: ExecutionFilterType) {
 	executionsStore.reset();
-	executionsStore.setFilters(newFilters);
+	// Resolve node IDs to names for the backend (execution data stores node names, not IDs)
+	const resolvedFilters = {
+		...newFilters,
+		nodesExecuted: resolveNodeIdsToNames(newFilters.nodesExecuted),
+	};
+	executionsStore.setFilters(resolvedFilters);
+	// Sync nodesExecuted filter with URL using node IDs
+	updatingFilters.value = true;
+	try {
+		if (resolvedFilters.nodesExecuted.length > 0) {
+			const nodeIds = resolvedFilters.nodesExecuted.map((name) => {
+				const node = workflow.value?.nodes.find((n) => n.name === name);
+				return node?.id ?? name;
+			});
+			await router.replace({ ...route, query: { ...route.query, nodesExecuted: nodeIds } });
+		} else if (route.query.nodesExecuted) {
+			const { nodesExecuted: _, ...remainingQuery } = route.query;
+			await router.replace({ ...route, query: remainingQuery });
+		}
+	} finally {
+		updatingFilters.value = false;
+	}
 	await executionsStore.initialize(workflowId.value);
 }
 
