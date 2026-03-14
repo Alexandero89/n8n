@@ -51,7 +51,8 @@ const defaultFilterState: ExecutionFilterType = {
 	metadata: [{ key: '', value: '', exactMatch: false }],
 	vote: 'all',
 	nodesExecuted: [],
-	outputContains: '',
+	dataContains: '',
+	dataContainsExact: false,
 };
 
 const workflowDataFactory = (): IWorkflowShortResponse => ({

@@ -54,7 +54,8 @@ export function getDefaultExecutionFilters(): ExecutionFilterType {
 		metadata: [],
 		vote: 'all',
 		nodesExecuted: [],
-		outputContains: '',
+		dataContains: '',
+		dataContainsExact: false,
 	};
 }
 
@@ -86,8 +87,9 @@ export const executionFilterToQueryFilter = (
 		queryFilter.nodesExecuted = filter.nodesExecuted;
 	}
 
-	if (filter.outputContains) {
-		queryFilter.outputContains = filter.outputContains;
+	if (filter.dataContains) {
+		queryFilter.dataContains = filter.dataContains;
+		queryFilter.dataContainsExact = filter.dataContainsExact;
 	}
 
 	if (filter.startDate) {

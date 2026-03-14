@@ -129,7 +129,7 @@ const emit = defineEmits<{
 	'selection:end': [position: XYPosition];
 	'open:sub-workflow': [nodeId: string];
 	'filter:executions:by-node': [nodeId: string];
-	'filter:executions:by-output': [nodeId: string];
+	'filter:executions:by-data': [nodeId: string];
 	'start-chat': [];
 	'extract-workflow': [ids: string[]];
 }>();
@@ -848,8 +848,8 @@ async function onContextMenuAction(action: ContextMenuAction, nodeIds: string[])
 			emit('filter:executions:by-node', nodeIds[0]);
 			return;
 		}
-		case 'filter_by_output_contains': {
-			emit('filter:executions:by-output', nodeIds[0]);
+		case 'filter_by_data_contains': {
+			emit('filter:executions:by-data', nodeIds[0]);
 			return;
 		}
 	}

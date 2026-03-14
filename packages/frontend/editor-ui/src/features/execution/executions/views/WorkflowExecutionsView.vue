@@ -96,9 +96,9 @@ function applyUrlFilters() {
 		changed = true;
 	}
 
-	const outputContainsParam = route.query.outputContains;
-	if (outputContainsParam && typeof outputContainsParam === 'string') {
-		filters.outputContains = outputContainsParam;
+	const dataContainsParam = route.query.dataContains;
+	if (dataContainsParam && typeof dataContainsParam === 'string') {
+		filters.dataContains = dataContainsParam;
 		changed = true;
 	}
 
@@ -108,7 +108,7 @@ function applyUrlFilters() {
 }
 
 watch(
-	() => [route.query.nodesExecuted, route.query.outputContains],
+	() => [route.query.nodesExecuted, route.query.dataContains],
 	async () => {
 		if (updatingFilters.value) return;
 		executionsStore.resetData();
@@ -133,8 +133,8 @@ onMounted(async () => {
 onBeforeUnmount(() => {
 	executionsStore.reset();
 	document.removeEventListener('visibilitychange', onDocumentVisibilityChange);
-	if (route.query.nodesExecuted || route.query.outputContains) {
-		const { nodesExecuted: _n, outputContains: _o, ...remainingQuery } = route.query;
+	if (route.query.nodesExecuted || route.query.dataContains) {
+		const { nodesExecuted: _n, dataContains: _d, ...remainingQuery } = route.query;
 		void router.replace({ ...route, query: remainingQuery });
 	}
 });
@@ -253,11 +253,11 @@ async function onUpdateFilters(newFilters: ExecutionFilterType) {
 			delete newQuery.nodesExecuted;
 		}
 
-		// Sync outputContains
-		if (resolvedFilters.outputContains) {
-			newQuery.outputContains = resolvedFilters.outputContains;
+		// Sync dataContains
+		if (resolvedFilters.dataContains) {
+			newQuery.dataContains = resolvedFilters.dataContains;
 		} else {
-			delete newQuery.outputContains;
+			delete newQuery.dataContains;
 		}
 
 		await router.replace({ ...route, query: newQuery });

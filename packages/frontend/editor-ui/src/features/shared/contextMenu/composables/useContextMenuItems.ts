@@ -45,9 +45,13 @@ export type ContextMenuAction =
 	| 'extract_sub_workflow'
 	| 'focus_ai_on_selected'
 	| 'filter_by_node_executed'
-	| 'filter_by_output_contains';
+	| 'filter_by_data_contains';
 
-type Item = ActionDropdownItem<ContextMenuAction>;
+export type ContextMenuItem = ActionDropdownItem<ContextMenuAction> & {
+	children?: ContextMenuItem[];
+};
+
+type Item = ContextMenuItem;
 
 export function useContextMenuItems(targetNodeIds: ComputedRef<string[]>): ComputedRef<Item[]> {
 	const uiStore = useUIStore();
@@ -327,17 +331,21 @@ export function useContextMenuItems(targetNodeIds: ComputedRef<string[]>): Compu
 				}
 
 				if (!onlyStickies) {
-					singleNodeActions.push(
-						{
-							id: 'filter_by_node_executed',
-							divided: true,
-							label: i18n.baseText('contextMenu.filterExecutionsByNodeExecuted'),
-						},
-						{
-							id: 'filter_by_output_contains',
-							label: i18n.baseText('contextMenu.filterExecutionsByOutputContains'),
-						},
-					);
+					singleNodeActions.push({
+						id: 'filter_executions_by' as ContextMenuAction,
+						divided: true,
+						label: i18n.baseText('contextMenu.filterExecutionsBy'),
+						children: [
+							{
+								id: 'filter_by_node_executed',
+								label: i18n.baseText('contextMenu.filterExecutionsByNodeExecuted'),
+							},
+							{
+								id: 'filter_by_data_contains',
+								label: i18n.baseText('contextMenu.filterExecutionsByDataContains'),
+							},
+						],
+					});
 				}
 				// Add actions only available for a single node
 				menuActions.unshift(...singleNodeActions);

@@ -41,7 +41,7 @@ const emit = defineEmits<{
 	close: [];
 	ready: [];
 	'filter:executions:by-node': [nodeId: string];
-	'filter:executions:by-output': [nodeId: string, outputContains: string];
+	'filter:executions:by-data': [nodeId: string, dataContains: string];
 }>();
 
 const i18n = useI18n();
@@ -159,8 +159,8 @@ const receiveMessage = ({ data }: MessageEvent) => {
 			onCloseNDV();
 		} else if (json.command === 'filterExecutionsByNode') {
 			emit('filter:executions:by-node', json.nodeId as string);
-		} else if (json.command === 'filterExecutionsByOutput') {
-			emit('filter:executions:by-output', json.nodeId as string, json.outputContains as string);
+		} else if (json.command === 'filterExecutionsByData') {
+			emit('filter:executions:by-data', json.nodeId as string, json.dataContains as string);
 		} else if (json.command === 'error') {
 			onError();
 		}

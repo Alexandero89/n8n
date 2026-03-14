@@ -73,7 +73,8 @@ const getDefaultFilter = (): ExecutionFilterType => ({
 	metadata: [{ key: '', value: '', exactMatch: false }],
 	vote: 'all',
 	nodesExecuted: [],
-	outputContains: '',
+	dataContains: '',
+	dataContainsExact: false,
 });
 const filter = reactive(getDefaultFilter());
 
@@ -86,7 +87,7 @@ watch(
 			newFilter.startDate ||
 			newFilter.endDate ||
 			!isEmpty(newFilter.nodesExecuted) ||
-			newFilter.outputContains
+			newFilter.dataContains
 		) {
 			debouncedEmit('filterChanged', newFilter);
 		} else {
@@ -123,7 +124,7 @@ const countSelectedFilterProps = computed(() => {
 		!!filter.startDate,
 		!!filter.endDate,
 		!isEmpty(filter.nodesExecuted),
-		!!filter.outputContains,
+		!!filter.dataContains,
 	].filter(Boolean);
 
 	return nonDefaultFilters.length;
@@ -175,8 +176,8 @@ const onNodeIdChange = (value: string) => {
 	filter.nodesExecuted = value.trim() ? [value.trim()] : [];
 };
 
-const onOutputContainsChange = (value: string) => {
-	filter.outputContains = value.trim();
+const onDataContainsChange = (value: string) => {
+	filter.dataContains = value.trim();
 };
 
 const onExactMatchChange = (e: string | number | boolean) => {
@@ -197,10 +198,10 @@ watch(
 );
 
 watch(
-	() => executionsStore.filters.outputContains,
+	() => executionsStore.filters.dataContains,
 	(storeValue) => {
-		if (filter.outputContains !== storeValue) {
-			filter.outputContains = storeValue;
+		if (filter.dataContains !== storeValue) {
+			filter.dataContains = storeValue;
 		}
 	},
 	{ immediate: true },
@@ -336,18 +337,26 @@ onBeforeMount(() => {
 					/>
 				</div>
 				<div :class="$style.group">
-					<label for="execution-filter-output-contains">{{
-						locale.baseText('executionsFilter.outputContains')
+					<label for="execution-filter-data-contains">{{
+						locale.baseText('executionsFilter.dataContains')
 					}}</label>
 					<N8nInput
-						id="execution-filter-output-contains"
-						name="execution-filter-output-contains"
+						id="execution-filter-data-contains"
+						name="execution-filter-data-contains"
 						type="text"
-						:placeholder="locale.baseText('executionsFilter.outputContainsPlaceholder')"
-						:model-value="filter.outputContains"
-						data-test-id="execution-filter-output-contains-input"
-						@update:model-value="onOutputContainsChange"
+						:placeholder="locale.baseText('executionsFilter.dataContainsPlaceholder')"
+						:model-value="filter.dataContains"
+						data-test-id="execution-filter-data-contains-input"
+						@update:model-value="onDataContainsChange"
 					/>
+					<div :class="$style.checkboxRow">
+						<N8nCheckbox
+							:model-value="filter.dataContainsExact"
+							:label="locale.baseText('executionsFilter.dataContainsExact')"
+							data-test-id="execution-filter-data-contains-exact"
+							@update:model-value="filter.dataContainsExact = $event"
+						/>
+					</div>
 				</div>
 				<div v-if="isAnnotationFiltersEnabled" :class="$style.group">
 					<label for="execution-filter-annotation-tags">{{
@@ -492,6 +501,16 @@ onBeforeMount(() => {
 		font-size: var(--font-size--2xs);
 		margin: var(--spacing--sm) 0 var(--spacing--3xs);
 		color: var(--color--text--shade-1);
+	}
+}
+
+.checkboxRow {
+	margin-top: var(--spacing--2xs);
+
+	label {
+		display: flex;
+		align-items: center;
+		margin: 0;
 	}
 }
 

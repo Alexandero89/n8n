@@ -77,7 +77,8 @@ export const schemaGetExecutionsQueryFilter = {
 		vote: { type: 'string' },
 		projectId: { type: 'string' },
 		nodesExecuted: { type: 'array', items: { type: 'string' } },
-		outputContains: { type: 'string' },
+		dataContains: { type: 'string' },
+		dataContainsExact: { type: 'boolean' },
 	},
 	$defs: {
 		metadata: {

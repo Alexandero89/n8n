@@ -504,18 +504,18 @@ function onFilterExecutionsByNode(nodeId: string) {
 	});
 }
 
-async function onFilterExecutionsByOutput(nodeId: string) {
+async function onFilterExecutionsByData(nodeId: string) {
 	try {
 		const result = await message.prompt(
-			i18n.baseText('executionsFilter.outputContainsPromptMessage'),
-			i18n.baseText('executionsFilter.outputContainsPromptTitle'),
+			i18n.baseText('executionsFilter.dataContainsPromptMessage'),
+			i18n.baseText('executionsFilter.dataContainsPromptTitle'),
 			{
-				confirmButtonText: i18n.baseText('executionsFilter.outputContainsPromptConfirm'),
-				cancelButtonText: i18n.baseText('executionsFilter.outputContainsPromptCancel'),
+				confirmButtonText: i18n.baseText('executionsFilter.dataContainsPromptConfirm'),
+				cancelButtonText: i18n.baseText('executionsFilter.dataContainsPromptCancel'),
 				inputValue: '',
 				inputValidator: (value: string) => {
 					if (!value.trim()) {
-						return i18n.baseText('executionsFilter.outputContainsPromptMessage');
+						return i18n.baseText('executionsFilter.dataContainsPromptMessage');
 					}
 					return true;
 				},
@@ -527,9 +527,9 @@ async function onFilterExecutionsByOutput(nodeId: string) {
 			if (isDemoRoute.value) {
 				window.parent.postMessage(
 					JSON.stringify({
-						command: 'filterExecutionsByOutput',
+						command: 'filterExecutionsByData',
 						nodeId,
-						outputContains: searchText,
+						dataContains: searchText,
 					}),
 					'*',
 				);
@@ -538,7 +538,7 @@ async function onFilterExecutionsByOutput(nodeId: string) {
 			void router.push({
 				name: VIEWS.EXECUTION_HOME,
 				params: { name: workflowId.value },
-				query: { nodesExecuted: nodeId, outputContains: searchText },
+				query: { nodesExecuted: nodeId, dataContains: searchText },
 			});
 		}
 	} catch {
@@ -1828,7 +1828,7 @@ onBeforeUnmount(() => {
 			@update:has-range-selection="canvasStore.setHasRangeSelection"
 			@open:sub-workflow="onOpenSubWorkflow"
 			@filter:executions:by-node="onFilterExecutionsByNode"
-			@filter:executions:by-output="onFilterExecutionsByOutput"
+			@filter:executions:by-data="onFilterExecutionsByData"
 			@click:node="onClickNode"
 			@click:node:add="onClickNodeAdd"
 			@run:node="onRunWorkflowToNode"

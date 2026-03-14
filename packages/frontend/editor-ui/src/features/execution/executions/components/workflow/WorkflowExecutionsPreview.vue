@@ -133,11 +133,11 @@ function onFilterExecutionsByNode(nodeId: string) {
 	});
 }
 
-function onFilterExecutionsByOutput(nodeId: string, outputContains: string) {
+function onFilterExecutionsByData(nodeId: string, dataContains: string) {
 	void router.push({
 		name: VIEWS.EXECUTION_HOME,
 		params: { name: workflowId.value },
-		query: { nodesExecuted: nodeId, outputContains },
+		query: { nodesExecuted: nodeId, dataContains },
 	});
 }
 
@@ -355,7 +355,7 @@ const onVoteClick = async (voteValue: AnnotationVote) => {
 			:execution-mode="execution?.mode || ''"
 			:node-id="nodeId"
 			@filter:executions:by-node="onFilterExecutionsByNode"
-			@filter:executions:by-output="onFilterExecutionsByOutput"
+			@filter:executions:by-data="onFilterExecutionsByData"
 		/>
 	</div>
 </template>

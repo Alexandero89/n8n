@@ -27,7 +27,8 @@ export type ExecutionFilterType = {
 	vote: ExecutionFilterVote;
 	metadata: ExecutionFilterMetadata[];
 	nodesExecuted: string[];
-	outputContains: string;
+	dataContains: string;
+	dataContainsExact: boolean;
 };
 
 export type ExecutionsQueryFilter = {
@@ -42,7 +43,8 @@ export type ExecutionsQueryFilter = {
 	annotationTags?: string[];
 	vote?: ExecutionFilterVote;
 	nodesExecuted?: string[];
-	outputContains?: string;
+	dataContains?: string;
+	dataContainsExact?: boolean;
 };
 
 export interface IExecutionBase {
