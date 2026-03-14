@@ -129,6 +129,7 @@ const emit = defineEmits<{
 	'selection:end': [position: XYPosition];
 	'open:sub-workflow': [nodeId: string];
 	'filter:executions:by-node': [nodeId: string];
+	'filter:executions:by-output': [nodeId: string];
 	'start-chat': [];
 	'extract-workflow': [ids: string[]];
 }>();
@@ -843,8 +844,12 @@ async function onContextMenuAction(action: ContextMenuAction, nodeIds: string[])
 			void chatPanelStore.open({ mode: 'builder' });
 			return;
 		}
-		case 'filter_executions_by': {
+		case 'filter_by_node_executed': {
 			emit('filter:executions:by-node', nodeIds[0]);
+			return;
+		}
+		case 'filter_by_output_contains': {
+			emit('filter:executions:by-output', nodeIds[0]);
 			return;
 		}
 	}

@@ -199,6 +199,7 @@ export namespace ExecutionSummaries {
 		vote: AnnotationVote;
 		projectId: string;
 		nodesExecuted: string[];
+		outputContains: string;
 	}>;
 
 	export type StopExecutionFilterQuery = { workflowId: string } & Pick<

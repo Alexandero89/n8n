@@ -83,6 +83,7 @@ export interface IGetExecutionsQueryFilter {
 	startedAfter?: string;
 	startedBefore?: string;
 	nodesExecuted?: string[];
+	outputContains?: string;
 }
 
 export type ExecutionDeletionCriteria = {
@@ -974,6 +975,7 @@ export class ExecutionRepository extends Repository<ExecutionEntity> {
 			vote,
 			projectId,
 			nodesExecuted,
+			outputContains,
 		} = query;
 
 		const fields = Object.keys(this.summaryFields)
@@ -1053,9 +1055,12 @@ export class ExecutionRepository extends Repository<ExecutionEntity> {
 				.andWhere('sw.projectId = :projectId', { projectId });
 		}
 
-		if (nodesExecuted?.length) {
+		const needsDataJoin = nodesExecuted?.length || outputContains;
+		if (needsDataJoin) {
 			qb.innerJoin(ExecutionData, 'ed', 'ed.executionId = execution.id');
+		}
 
+		if (nodesExecuted?.length) {
 			qb.andWhere(
 				new Brackets((qb2: SelectQueryBuilder<ExecutionEntity>) => {
 					for (let i = 0; i < nodesExecuted.length; i++) {
@@ -1065,6 +1070,12 @@ export class ExecutionRepository extends Repository<ExecutionEntity> {
 					}
 				}),
 			);
+		}
+
+		if (outputContains) {
+			qb.andWhere('ed.data LIKE :outputContains', {
+				outputContains: `%${outputContains}%`,
+			});
 		}
 
 		return qb;

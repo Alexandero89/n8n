@@ -44,7 +44,8 @@ export type ContextMenuAction =
 	| 'tidy_up'
 	| 'extract_sub_workflow'
 	| 'focus_ai_on_selected'
-	| 'filter_executions_by';
+	| 'filter_by_node_executed'
+	| 'filter_by_output_contains';
 
 type Item = ActionDropdownItem<ContextMenuAction>;
 
@@ -326,11 +327,17 @@ export function useContextMenuItems(targetNodeIds: ComputedRef<string[]>): Compu
 				}
 
 				if (!onlyStickies) {
-					singleNodeActions.push({
-						id: 'filter_executions_by',
-						divided: true,
-						label: i18n.baseText('contextMenu.filterExecutionsByNode'),
-					});
+					singleNodeActions.push(
+						{
+							id: 'filter_by_node_executed',
+							divided: true,
+							label: i18n.baseText('contextMenu.filterExecutionsByNodeExecuted'),
+						},
+						{
+							id: 'filter_by_output_contains',
+							label: i18n.baseText('contextMenu.filterExecutionsByOutputContains'),
+						},
+					);
 				}
 				// Add actions only available for a single node
 				menuActions.unshift(...singleNodeActions);

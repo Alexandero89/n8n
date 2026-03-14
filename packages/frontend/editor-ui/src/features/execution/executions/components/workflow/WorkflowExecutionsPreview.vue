@@ -133,6 +133,14 @@ function onFilterExecutionsByNode(nodeId: string) {
 	});
 }
 
+function onFilterExecutionsByOutput(nodeId: string, outputContains: string) {
+	void router.push({
+		name: VIEWS.EXECUTION_HOME,
+		params: { name: workflowId.value },
+		query: { nodesExecuted: nodeId, outputContains },
+	});
+}
+
 function onRetryButtonBlur(event: FocusEvent) {
 	// Hide dropdown when clicking outside of current document
 	if (retryDropdownRef.value && event.relatedTarget === null) {
@@ -347,6 +355,7 @@ const onVoteClick = async (voteValue: AnnotationVote) => {
 			:execution-mode="execution?.mode || ''"
 			:node-id="nodeId"
 			@filter:executions:by-node="onFilterExecutionsByNode"
+			@filter:executions:by-output="onFilterExecutionsByOutput"
 		/>
 	</div>
 </template>

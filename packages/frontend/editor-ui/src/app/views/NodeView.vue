@@ -504,6 +504,48 @@ function onFilterExecutionsByNode(nodeId: string) {
 	});
 }
 
+async function onFilterExecutionsByOutput(nodeId: string) {
+	try {
+		const result = await message.prompt(
+			i18n.baseText('executionsFilter.outputContainsPromptMessage'),
+			i18n.baseText('executionsFilter.outputContainsPromptTitle'),
+			{
+				confirmButtonText: i18n.baseText('executionsFilter.outputContainsPromptConfirm'),
+				cancelButtonText: i18n.baseText('executionsFilter.outputContainsPromptCancel'),
+				inputValue: '',
+				inputValidator: (value: string) => {
+					if (!value.trim()) {
+						return i18n.baseText('executionsFilter.outputContainsPromptMessage');
+					}
+					return true;
+				},
+			},
+		);
+
+		if (result?.action === 'confirm' && result.value) {
+			const searchText = result.value.trim();
+			if (isDemoRoute.value) {
+				window.parent.postMessage(
+					JSON.stringify({
+						command: 'filterExecutionsByOutput',
+						nodeId,
+						outputContains: searchText,
+					}),
+					'*',
+				);
+				return;
+			}
+			void router.push({
+				name: VIEWS.EXECUTION_HOME,
+				params: { name: workflowId.value },
+				query: { nodesExecuted: nodeId, outputContains: searchText },
+			});
+		}
+	} catch {
+		// User cancelled the prompt
+	}
+}
+
 function onSetNodeDeactivated() {
 	clearNodeActive();
 }
@@ -1786,6 +1828,7 @@ onBeforeUnmount(() => {
 			@update:has-range-selection="canvasStore.setHasRangeSelection"
 			@open:sub-workflow="onOpenSubWorkflow"
 			@filter:executions:by-node="onFilterExecutionsByNode"
+			@filter:executions:by-output="onFilterExecutionsByOutput"
 			@click:node="onClickNode"
 			@click:node:add="onClickNodeAdd"
 			@run:node="onRunWorkflowToNode"

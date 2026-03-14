@@ -73,6 +73,7 @@ const getDefaultFilter = (): ExecutionFilterType => ({
 	metadata: [{ key: '', value: '', exactMatch: false }],
 	vote: 'all',
 	nodesExecuted: [],
+	outputContains: '',
 });
 const filter = reactive(getDefaultFilter());
 
@@ -81,7 +82,12 @@ watch(
 	filter,
 	(newFilter) => {
 		// Use debounced emit for text inputs to prevent rapid API calls while typing
-		if (newFilter.startDate || newFilter.endDate || !isEmpty(newFilter.nodesExecuted)) {
+		if (
+			newFilter.startDate ||
+			newFilter.endDate ||
+			!isEmpty(newFilter.nodesExecuted) ||
+			newFilter.outputContains
+		) {
 			debouncedEmit('filterChanged', newFilter);
 		} else {
 			emit('filterChanged', newFilter);
@@ -117,6 +123,7 @@ const countSelectedFilterProps = computed(() => {
 		!!filter.startDate,
 		!!filter.endDate,
 		!isEmpty(filter.nodesExecuted),
+		!!filter.outputContains,
 	].filter(Boolean);
 
 	return nonDefaultFilters.length;
@@ -168,18 +175,32 @@ const onNodeIdChange = (value: string) => {
 	filter.nodesExecuted = value.trim() ? [value.trim()] : [];
 };
 
+const onOutputContainsChange = (value: string) => {
+	filter.outputContains = value.trim();
+};
+
 const onExactMatchChange = (e: string | number | boolean) => {
 	if (typeof e === 'boolean') {
 		onFilterMetaChange(0, 'exactMatch', e);
 	}
 };
 
-// Sync nodesExecuted from store (set externally via context menu)
+// Sync filters from store (set externally via context menu or URL)
 watch(
 	() => executionsStore.filters.nodesExecuted,
 	(storeNodes) => {
 		if (JSON.stringify(filter.nodesExecuted) !== JSON.stringify(storeNodes)) {
 			filter.nodesExecuted = [...storeNodes];
+		}
+	},
+	{ immediate: true },
+);
+
+watch(
+	() => executionsStore.filters.outputContains,
+	(storeValue) => {
+		if (filter.outputContains !== storeValue) {
+			filter.outputContains = storeValue;
 		}
 	},
 	{ immediate: true },
@@ -312,6 +333,20 @@ onBeforeMount(() => {
 						:model-value="filter.nodesExecuted[0] ?? ''"
 						data-test-id="execution-filter-node-id-input"
 						@update:model-value="onNodeIdChange"
+					/>
+				</div>
+				<div :class="$style.group">
+					<label for="execution-filter-output-contains">{{
+						locale.baseText('executionsFilter.outputContains')
+					}}</label>
+					<N8nInput
+						id="execution-filter-output-contains"
+						name="execution-filter-output-contains"
+						type="text"
+						:placeholder="locale.baseText('executionsFilter.outputContainsPlaceholder')"
+						:model-value="filter.outputContains"
+						data-test-id="execution-filter-output-contains-input"
+						@update:model-value="onOutputContainsChange"
 					/>
 				</div>
 				<div v-if="isAnnotationFiltersEnabled" :class="$style.group">

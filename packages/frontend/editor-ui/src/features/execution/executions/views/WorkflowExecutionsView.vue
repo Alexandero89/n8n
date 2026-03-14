@@ -83,26 +83,36 @@ function resolveNodeIdsToNames(nodeIds: string[]): string[] {
 	});
 }
 
-function applyNodesExecutedFilter() {
+function applyUrlFilters() {
+	const filters = { ...executionsStore.filters };
+	let changed = false;
+
 	const nodesExecutedParam = route.query.nodesExecuted;
 	if (nodesExecutedParam) {
 		const nodeIds = Array.isArray(nodesExecutedParam)
 			? nodesExecutedParam.filter((n): n is string => typeof n === 'string')
 			: [nodesExecutedParam as string];
-		const nodesExecuted = resolveNodeIdsToNames(nodeIds);
-		executionsStore.setFilters({
-			...executionsStore.filters,
-			nodesExecuted,
-		});
+		filters.nodesExecuted = resolveNodeIdsToNames(nodeIds);
+		changed = true;
+	}
+
+	const outputContainsParam = route.query.outputContains;
+	if (outputContainsParam && typeof outputContainsParam === 'string') {
+		filters.outputContains = outputContainsParam;
+		changed = true;
+	}
+
+	if (changed) {
+		executionsStore.setFilters(filters);
 	}
 }
 
 watch(
-	() => route.query.nodesExecuted,
+	() => [route.query.nodesExecuted, route.query.outputContains],
 	async () => {
 		if (updatingFilters.value) return;
 		executionsStore.resetData();
-		applyNodesExecutedFilter();
+		applyUrlFilters();
 		await executionsStore.initialize(workflowId.value);
 		await initializeRoute();
 	},
@@ -112,7 +122,7 @@ onMounted(async () => {
 	fetchWorkflow();
 
 	if (workflowId.value) {
-		applyNodesExecutedFilter();
+		applyUrlFilters();
 		await Promise.all([executionsStore.initialize(workflowId.value), fetchExecution()]);
 	}
 
@@ -123,8 +133,8 @@ onMounted(async () => {
 onBeforeUnmount(() => {
 	executionsStore.reset();
 	document.removeEventListener('visibilitychange', onDocumentVisibilityChange);
-	if (route.query.nodesExecuted) {
-		const { nodesExecuted: _, ...remainingQuery } = route.query;
+	if (route.query.nodesExecuted || route.query.outputContains) {
+		const { nodesExecuted: _n, outputContains: _o, ...remainingQuery } = route.query;
 		void router.replace({ ...route, query: remainingQuery });
 	}
 });
@@ -228,19 +238,29 @@ async function onUpdateFilters(newFilters: ExecutionFilterType) {
 		nodesExecuted: resolveNodeIdsToNames(newFilters.nodesExecuted),
 	};
 	executionsStore.setFilters(resolvedFilters);
-	// Sync nodesExecuted filter with URL using node IDs
+	// Sync filters with URL
 	updatingFilters.value = true;
 	try {
+		const newQuery = { ...route.query };
+
+		// Sync nodesExecuted
 		if (resolvedFilters.nodesExecuted.length > 0) {
-			const nodeIds = resolvedFilters.nodesExecuted.map((name) => {
+			newQuery.nodesExecuted = resolvedFilters.nodesExecuted.map((name) => {
 				const node = workflow.value?.nodes.find((n) => n.name === name);
 				return node?.id ?? name;
 			});
-			await router.replace({ ...route, query: { ...route.query, nodesExecuted: nodeIds } });
-		} else if (route.query.nodesExecuted) {
-			const { nodesExecuted: _, ...remainingQuery } = route.query;
-			await router.replace({ ...route, query: remainingQuery });
+		} else {
+			delete newQuery.nodesExecuted;
 		}
+
+		// Sync outputContains
+		if (resolvedFilters.outputContains) {
+			newQuery.outputContains = resolvedFilters.outputContains;
+		} else {
+			delete newQuery.outputContains;
+		}
+
+		await router.replace({ ...route, query: newQuery });
 	} finally {
 		updatingFilters.value = false;
 	}
