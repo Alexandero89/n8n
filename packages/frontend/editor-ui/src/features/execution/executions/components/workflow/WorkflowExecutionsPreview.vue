@@ -15,7 +15,7 @@ import { useSettingsStore } from '@/app/stores/settings.store';
 import { useWorkflowsListStore } from '@/app/stores/workflowsList.store';
 import type { AnnotationVote, ExecutionSummary } from 'n8n-workflow';
 import { computed, ref } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { useExecutionsStore } from '../../executions.store';
 
 import { ElDropdown, ElDropdownItem, ElDropdownMenu } from 'element-plus';
@@ -35,6 +35,7 @@ const emit = defineEmits<{
 }>();
 
 const route = useRoute();
+const router = useRouter();
 const locale = useI18n();
 const { showError } = useToast();
 
@@ -121,6 +122,22 @@ function handleRetryClick(command: string) {
 
 function handleStopClick() {
 	emit('stopExecution');
+}
+
+function onFilterExecutionsByNode(nodeId: string) {
+	void router.push({
+		name: VIEWS.EXECUTION_HOME,
+		params: { name: workflowId.value },
+		query: { nodesExecuted: nodeId },
+	});
+}
+
+function onFilterExecutionsByData(nodeId: string, dataContains: string) {
+	void router.push({
+		name: VIEWS.EXECUTION_HOME,
+		params: { name: workflowId.value },
+		query: { nodesExecuted: nodeId, dataContains },
+	});
 }
 
 function onRetryButtonBlur(event: FocusEvent) {
@@ -336,6 +353,8 @@ const onVoteClick = async (voteValue: AnnotationVote) => {
 			:execution-id="executionId"
 			:execution-mode="execution?.mode || ''"
 			:node-id="nodeId"
+			@filter:executions:by-node="onFilterExecutionsByNode"
+			@filter:executions:by-data="onFilterExecutionsByData"
 		/>
 	</div>
 </template>

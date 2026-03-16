@@ -40,7 +40,9 @@ export type ContextMenuAction =
 	| 'open_sub_workflow'
 	| 'tidy_up'
 	| 'extract_sub_workflow'
-	| 'focus_ai_on_selected';
+	| 'focus_ai_on_selected'
+	| 'filter_by_node_executed'
+	| 'filter_by_data_contains';
 
 export type ContextMenuItem = ActionDropdownItem<ContextMenuAction> & {
 	children?: ContextMenuItem[];
@@ -328,16 +330,20 @@ export function useContextMenuItems(targetNodeIds: ComputedRef<string[]>): Compu
 					});
 				}
 
-				// TODO: Demo submenu item — remove before merging
 				if (!onlyStickies) {
 					singleNodeActions.push({
-						id: 'demo_submenu' as ContextMenuAction,
+						id: 'filter_executions_by' as ContextMenuAction,
 						divided: true,
-						label: 'Demo submenu',
+						label: i18n.baseText('contextMenu.filterExecutionsBy'),
 						children: [
-							{ id: 'select_all', label: 'Child item 1' },
-							{ id: 'select_all', label: 'Child item 2' },
-							{ id: 'select_all', label: 'Child item 3' },
+							{
+								id: 'filter_by_node_executed',
+								label: i18n.baseText('contextMenu.filterExecutionsByNodeExecuted'),
+							},
+							{
+								id: 'filter_by_data_contains',
+								label: i18n.baseText('contextMenu.filterExecutionsByDataContains'),
+							},
 						],
 					});
 				}

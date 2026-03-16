@@ -40,21 +40,17 @@ exports[`useContextMenu > Read-only mode > should return the correct actions whe
   {
     "children": [
       {
-        "id": "select_all",
-        "label": "Child item 1",
+        "id": "filter_by_node_executed",
+        "label": "This node was executed",
       },
       {
-        "id": "select_all",
-        "label": "Child item 2",
-      },
-      {
-        "id": "select_all",
-        "label": "Child item 3",
+        "id": "filter_by_data_contains",
+        "label": "Data contains...",
       },
     ],
     "divided": true,
-    "id": "demo_submenu",
-    "label": "Demo submenu",
+    "id": "filter_executions_by",
+    "label": "Filter executions by...",
   },
   {
     "disabled": true,
@@ -287,21 +283,17 @@ exports[`useContextMenu > should return the correct actions opening the menu fro
   {
     "children": [
       {
-        "id": "select_all",
-        "label": "Child item 1",
+        "id": "filter_by_node_executed",
+        "label": "This node was executed",
       },
       {
-        "id": "select_all",
-        "label": "Child item 2",
-      },
-      {
-        "id": "select_all",
-        "label": "Child item 3",
+        "id": "filter_by_data_contains",
+        "label": "Data contains...",
       },
     ],
     "divided": true,
-    "id": "demo_submenu",
-    "label": "Demo submenu",
+    "id": "filter_executions_by",
+    "label": "Filter executions by...",
   },
   {
     "disabled": false,
@@ -440,21 +432,17 @@ exports[`useContextMenu > should return the correct actions when right clicking 
   {
     "children": [
       {
-        "id": "select_all",
-        "label": "Child item 1",
+        "id": "filter_by_node_executed",
+        "label": "This node was executed",
       },
       {
-        "id": "select_all",
-        "label": "Child item 2",
-      },
-      {
-        "id": "select_all",
-        "label": "Child item 3",
+        "id": "filter_by_data_contains",
+        "label": "Data contains...",
       },
     ],
     "divided": true,
-    "id": "demo_submenu",
-    "label": "Demo submenu",
+    "id": "filter_executions_by",
+    "label": "Filter executions by...",
   },
   {
     "disabled": false,
@@ -699,21 +687,17 @@ exports[`useContextMenu > should show "Go to Sub-workflow" action (disabled) whe
   {
     "children": [
       {
-        "id": "select_all",
-        "label": "Child item 1",
+        "id": "filter_by_node_executed",
+        "label": "This node was executed",
       },
       {
-        "id": "select_all",
-        "label": "Child item 2",
-      },
-      {
-        "id": "select_all",
-        "label": "Child item 3",
+        "id": "filter_by_data_contains",
+        "label": "Data contains...",
       },
     ],
     "divided": true,
-    "id": "demo_submenu",
-    "label": "Demo submenu",
+    "id": "filter_executions_by",
+    "label": "Filter executions by...",
   },
   {
     "disabled": false,
@@ -864,21 +848,17 @@ exports[`useContextMenu > should show "Go to Sub-workflow" action (disabled) whe
   {
     "children": [
       {
-        "id": "select_all",
-        "label": "Child item 1",
+        "id": "filter_by_node_executed",
+        "label": "This node was executed",
       },
       {
-        "id": "select_all",
-        "label": "Child item 2",
-      },
-      {
-        "id": "select_all",
-        "label": "Child item 3",
+        "id": "filter_by_data_contains",
+        "label": "Data contains...",
       },
     ],
     "divided": true,
-    "id": "demo_submenu",
-    "label": "Demo submenu",
+    "id": "filter_executions_by",
+    "label": "Filter executions by...",
   },
   {
     "disabled": false,
@@ -1029,21 +1009,17 @@ exports[`useContextMenu > should show "Go to Sub-workflow" action (enabled) when
   {
     "children": [
       {
-        "id": "select_all",
-        "label": "Child item 1",
+        "id": "filter_by_node_executed",
+        "label": "This node was executed",
       },
       {
-        "id": "select_all",
-        "label": "Child item 2",
-      },
-      {
-        "id": "select_all",
-        "label": "Child item 3",
+        "id": "filter_by_data_contains",
+        "label": "Data contains...",
       },
     ],
     "divided": true,
-    "id": "demo_submenu",
-    "label": "Demo submenu",
+    "id": "filter_executions_by",
+    "label": "Filter executions by...",
   },
   {
     "disabled": false,
@@ -1194,21 +1170,17 @@ exports[`useContextMenu > should show "Go to Sub-workflow" action (enabled) when
   {
     "children": [
       {
-        "id": "select_all",
-        "label": "Child item 1",
+        "id": "filter_by_node_executed",
+        "label": "This node was executed",
       },
       {
-        "id": "select_all",
-        "label": "Child item 2",
-      },
-      {
-        "id": "select_all",
-        "label": "Child item 3",
+        "id": "filter_by_data_contains",
+        "label": "Data contains...",
       },
     ],
     "divided": true,
-    "id": "demo_submenu",
-    "label": "Demo submenu",
+    "id": "filter_executions_by",
+    "label": "Filter executions by...",
   },
   {
     "disabled": false,

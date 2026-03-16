@@ -9,6 +9,7 @@ import type { IWorkflowDb, IWorkflowShortResponse } from '@/Interface';
 import type { ExecutionFilterMetadata, ExecutionFilterType } from '../executions.types';
 import { i18n as locale } from '@n8n/i18n';
 import { useSettingsStore } from '@/app/stores/settings.store';
+import { useExecutionsStore } from '../executions.store';
 import { isEmpty } from '@/app/utils/typesUtils';
 import { computed, onBeforeMount, reactive, ref, watch } from 'vue';
 import { I18nT } from 'vue-i18n';
@@ -36,6 +37,7 @@ export type ExecutionFilterProps = {
 const DATE_TIME_MASK = 'YYYY-MM-DD HH:mm';
 
 const settingsStore = useSettingsStore();
+const executionsStore = useExecutionsStore();
 const { debounce } = useDebounce();
 
 const telemetry = useTelemetry();
@@ -70,6 +72,9 @@ const getDefaultFilter = (): ExecutionFilterType => ({
 	endDate: '',
 	metadata: [{ key: '', value: '', exactMatch: false }],
 	vote: 'all',
+	nodesExecuted: [],
+	dataContains: '',
+	dataContainsExact: false,
 });
 const filter = reactive(getDefaultFilter());
 
@@ -77,8 +82,13 @@ const filter = reactive(getDefaultFilter());
 watch(
 	filter,
 	(newFilter) => {
-		// Use debounced emit if filter contains date changes to prevent rapid API calls
-		if (newFilter.startDate || newFilter.endDate) {
+		// Use debounced emit for text inputs to prevent rapid API calls while typing
+		if (
+			newFilter.startDate ||
+			newFilter.endDate ||
+			!isEmpty(newFilter.nodesExecuted) ||
+			newFilter.dataContains
+		) {
 			debouncedEmit('filterChanged', newFilter);
 		} else {
 			emit('filterChanged', newFilter);
@@ -113,6 +123,8 @@ const countSelectedFilterProps = computed(() => {
 		!isEmpty(filter.metadata),
 		!!filter.startDate,
 		!!filter.endDate,
+		!isEmpty(filter.nodesExecuted),
+		!!filter.dataContains,
 	].filter(Boolean);
 
 	return nonDefaultFilters.length;
@@ -160,11 +172,40 @@ const goToUpgrade = () => {
 	void pageRedirectionHelper.goToUpgrade('custom-data-filter', 'upgrade-custom-data-filter');
 };
 
+const onNodeIdChange = (value: string) => {
+	filter.nodesExecuted = value.trim() ? [value.trim()] : [];
+};
+
+const onDataContainsChange = (value: string) => {
+	filter.dataContains = value.trim();
+};
+
 const onExactMatchChange = (e: string | number | boolean) => {
 	if (typeof e === 'boolean') {
 		onFilterMetaChange(0, 'exactMatch', e);
 	}
 };
+
+// Sync filters from store (set externally via context menu or URL)
+watch(
+	() => executionsStore.filters.nodesExecuted,
+	(storeNodes) => {
+		if (JSON.stringify(filter.nodesExecuted) !== JSON.stringify(storeNodes)) {
+			filter.nodesExecuted = [...storeNodes];
+		}
+	},
+	{ immediate: true },
+);
+
+watch(
+	() => executionsStore.filters.dataContains,
+	(storeValue) => {
+		if (filter.dataContains !== storeValue) {
+			filter.dataContains = storeValue;
+		}
+	},
+	{ immediate: true },
+);
 
 onBeforeMount(() => {
 	isCustomDataFilterTracked.value = false;
@@ -278,6 +319,42 @@ onBeforeMount(() => {
 							:format="DATE_TIME_MASK"
 							:placeholder="locale.baseText('executionsFilter.endDate')"
 							data-test-id="executions-filter-end-date-picker"
+						/>
+					</div>
+				</div>
+				<div :class="$style.group">
+					<label for="execution-filter-node-id">{{
+						locale.baseText('executionsFilter.nodeId')
+					}}</label>
+					<N8nInput
+						id="execution-filter-node-id"
+						name="execution-filter-node-id"
+						type="text"
+						:placeholder="locale.baseText('executionsFilter.nodeIdPlaceholder')"
+						:model-value="filter.nodesExecuted[0] ?? ''"
+						data-test-id="execution-filter-node-id-input"
+						@update:model-value="onNodeIdChange"
+					/>
+				</div>
+				<div :class="$style.group">
+					<label for="execution-filter-data-contains">{{
+						locale.baseText('executionsFilter.dataContains')
+					}}</label>
+					<N8nInput
+						id="execution-filter-data-contains"
+						name="execution-filter-data-contains"
+						type="text"
+						:placeholder="locale.baseText('executionsFilter.dataContainsPlaceholder')"
+						:model-value="filter.dataContains"
+						data-test-id="execution-filter-data-contains-input"
+						@update:model-value="onDataContainsChange"
+					/>
+					<div :class="$style.checkboxRow">
+						<N8nCheckbox
+							:model-value="filter.dataContainsExact"
+							:label="locale.baseText('executionsFilter.dataContainsExact')"
+							data-test-id="execution-filter-data-contains-exact"
+							@update:model-value="filter.dataContainsExact = $event"
 						/>
 					</div>
 				</div>
@@ -424,6 +501,16 @@ onBeforeMount(() => {
 		font-size: var(--font-size--2xs);
 		margin: var(--spacing--sm) 0 var(--spacing--3xs);
 		color: var(--color--text--shade-1);
+	}
+}
+
+.checkboxRow {
+	margin-top: var(--spacing--2xs);
+
+	label {
+		display: flex;
+		align-items: center;
+		margin: 0;
 	}
 }
 

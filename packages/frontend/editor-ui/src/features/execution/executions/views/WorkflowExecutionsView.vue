@@ -29,6 +29,7 @@ const { callDebounced } = useDebounce();
 
 const loading = ref(false);
 const loadingMore = ref(false);
+const updatingFilters = ref(false);
 
 const workflow = ref<IWorkflowDb | undefined>();
 
@@ -73,10 +74,54 @@ watch(
 	},
 );
 
+function resolveNodeIdsToNames(nodeIds: string[]): string[] {
+	if (!workflow.value) return nodeIds;
+	return nodeIds.map((id) => {
+		const node = workflow.value?.nodes.find((n) => n.id === id);
+		return node?.name ?? id;
+	});
+}
+
+function applyUrlFilters() {
+	const filters = { ...executionsStore.filters };
+	let changed = false;
+
+	const nodesExecutedParam = route.query.nodesExecuted;
+	if (nodesExecutedParam) {
+		const nodeIds = Array.isArray(nodesExecutedParam)
+			? nodesExecutedParam.filter((n): n is string => typeof n === 'string')
+			: [nodesExecutedParam as string];
+		filters.nodesExecuted = resolveNodeIdsToNames(nodeIds);
+		changed = true;
+	}
+
+	const dataContainsParam = route.query.dataContains;
+	if (dataContainsParam && typeof dataContainsParam === 'string') {
+		filters.dataContains = dataContainsParam;
+		changed = true;
+	}
+
+	if (changed) {
+		executionsStore.setFilters(filters);
+	}
+}
+
+watch(
+	() => [route.query.nodesExecuted, route.query.dataContains],
+	async () => {
+		if (updatingFilters.value) return;
+		executionsStore.resetData();
+		applyUrlFilters();
+		await executionsStore.initialize(workflowId.value);
+		await initializeRoute();
+	},
+);
+
 onMounted(async () => {
 	fetchWorkflow();
 
 	if (workflowId.value) {
+		applyUrlFilters();
 		await Promise.all([executionsStore.initialize(workflowId.value), fetchExecution()]);
 	}
 
@@ -87,6 +132,10 @@ onMounted(async () => {
 onBeforeUnmount(() => {
 	executionsStore.reset();
 	document.removeEventListener('visibilitychange', onDocumentVisibilityChange);
+	if (route.query.nodesExecuted || route.query.dataContains) {
+		const { nodesExecuted: _n, dataContains: _d, ...remainingQuery } = route.query;
+		void router.replace({ ...route, query: remainingQuery });
+	}
 });
 
 async function fetchExecution() {
@@ -182,7 +231,38 @@ async function onRefreshData() {
 
 async function onUpdateFilters(newFilters: ExecutionFilterType) {
 	executionsStore.reset();
-	executionsStore.setFilters(newFilters);
+	// Resolve node IDs to names for the backend (execution data stores node names, not IDs)
+	const resolvedFilters = {
+		...newFilters,
+		nodesExecuted: resolveNodeIdsToNames(newFilters.nodesExecuted),
+	};
+	executionsStore.setFilters(resolvedFilters);
+	// Sync filters with URL
+	updatingFilters.value = true;
+	try {
+		const newQuery = { ...route.query };
+
+		// Sync nodesExecuted
+		if (resolvedFilters.nodesExecuted.length > 0) {
+			newQuery.nodesExecuted = resolvedFilters.nodesExecuted.map((name) => {
+				const node = workflow.value?.nodes.find((n) => n.name === name);
+				return node?.id ?? name;
+			});
+		} else {
+			delete newQuery.nodesExecuted;
+		}
+
+		// Sync dataContains
+		if (resolvedFilters.dataContains) {
+			newQuery.dataContains = resolvedFilters.dataContains;
+		} else {
+			delete newQuery.dataContains;
+		}
+
+		await router.replace({ ...route, query: newQuery });
+	} finally {
+		updatingFilters.value = false;
+	}
 	await executionsStore.initialize(workflowId.value);
 }
 

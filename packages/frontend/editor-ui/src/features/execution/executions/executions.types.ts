@@ -26,6 +26,9 @@ export type ExecutionFilterType = {
 	annotationTags: string[];
 	vote: ExecutionFilterVote;
 	metadata: ExecutionFilterMetadata[];
+	nodesExecuted: string[];
+	dataContains: string;
+	dataContainsExact: boolean;
 };
 
 export type ExecutionsQueryFilter = {
@@ -39,6 +42,9 @@ export type ExecutionsQueryFilter = {
 	startedBefore?: string;
 	annotationTags?: string[];
 	vote?: ExecutionFilterVote;
+	nodesExecuted?: string[];
+	dataContains?: string;
+	dataContainsExact?: boolean;
 };
 
 export interface IExecutionBase {

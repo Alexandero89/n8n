@@ -82,6 +82,9 @@ export interface IGetExecutionsQueryFilter {
 	metadata?: Array<{ key: string; value: string; exactMatch?: boolean }>;
 	startedAfter?: string;
 	startedBefore?: string;
+	nodesExecuted?: string[];
+	dataContains?: string;
+	dataContainsExact?: boolean;
 }
 
 export type ExecutionDeletionCriteria = {
@@ -972,6 +975,9 @@ export class ExecutionRepository extends Repository<ExecutionEntity> {
 			annotationTags,
 			vote,
 			projectId,
+			nodesExecuted,
+			dataContains,
+			dataContainsExact,
 		} = query;
 
 		const fields = Object.keys(this.summaryFields)
@@ -1049,6 +1055,28 @@ export class ExecutionRepository extends Repository<ExecutionEntity> {
 			qb.innerJoin(WorkflowEntity, 'w', 'w.id = execution.workflowId')
 				.innerJoin(SharedWorkflow, 'sw', 'sw.workflowId = w.id')
 				.andWhere('sw.projectId = :projectId', { projectId });
+		}
+
+		const needsDataJoin = nodesExecuted?.length || dataContains;
+		if (needsDataJoin) {
+			qb.innerJoin(ExecutionData, 'ed', 'ed.executionId = execution.id');
+		}
+
+		if (nodesExecuted?.length) {
+			qb.andWhere(
+				new Brackets((qb2: SelectQueryBuilder<ExecutionEntity>) => {
+					for (let i = 0; i < nodesExecuted.length; i++) {
+						qb2.orWhere(`ed.data LIKE :nodePattern_${i}`, {
+							[`nodePattern_${i}`]: `%"${nodesExecuted[i]}"%`,
+						});
+					}
+				}),
+			);
+		}
+
+		if (dataContains) {
+			const pattern = dataContainsExact ? `%"${dataContains}"%` : `%${dataContains}%`;
+			qb.andWhere('ed.data LIKE :dataContains', { dataContains: pattern });
 		}
 
 		return qb;

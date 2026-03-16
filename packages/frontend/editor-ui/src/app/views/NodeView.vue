@@ -488,6 +488,60 @@ function onOpenSubWorkflow(id: string) {
 	tryToOpenSubworkflowInNewTab(id);
 }
 
+function onFilterExecutionsByNode(nodeId: string) {
+	if (isDemoRoute.value) {
+		window.parent.postMessage(JSON.stringify({ command: 'filterExecutionsByNode', nodeId }), '*');
+		return;
+	}
+	void router.push({
+		name: VIEWS.EXECUTION_HOME,
+		params: { name: workflowId.value },
+		query: { nodesExecuted: nodeId },
+	});
+}
+
+async function onFilterExecutionsByData(nodeId: string) {
+	try {
+		const result = await message.prompt(
+			i18n.baseText('executionsFilter.dataContainsPromptMessage'),
+			i18n.baseText('executionsFilter.dataContainsPromptTitle'),
+			{
+				confirmButtonText: i18n.baseText('executionsFilter.dataContainsPromptConfirm'),
+				cancelButtonText: i18n.baseText('executionsFilter.dataContainsPromptCancel'),
+				inputValue: '',
+				inputValidator: (value: string) => {
+					if (!value.trim()) {
+						return i18n.baseText('executionsFilter.dataContainsPromptMessage');
+					}
+					return true;
+				},
+			},
+		);
+
+		if (result?.action === 'confirm' && result.value) {
+			const searchText = result.value.trim();
+			if (isDemoRoute.value) {
+				window.parent.postMessage(
+					JSON.stringify({
+						command: 'filterExecutionsByData',
+						nodeId,
+						dataContains: searchText,
+					}),
+					'*',
+				);
+				return;
+			}
+			void router.push({
+				name: VIEWS.EXECUTION_HOME,
+				params: { name: workflowId.value },
+				query: { nodesExecuted: nodeId, dataContains: searchText },
+			});
+		}
+	} catch {
+		// User cancelled the prompt
+	}
+}
+
 function onSetNodeDeactivated() {
 	clearNodeActive();
 }
@@ -1755,6 +1809,8 @@ onBeforeUnmount(() => {
 			@update:logs:output-open="logsStore.toggleOutputOpen"
 			@update:has-range-selection="canvasStore.setHasRangeSelection"
 			@open:sub-workflow="onOpenSubWorkflow"
+			@filter:executions:by-node="onFilterExecutionsByNode"
+			@filter:executions:by-data="onFilterExecutionsByData"
 			@click:node="onClickNode"
 			@click:node:add="onClickNodeAdd"
 			@run:node="onRunWorkflowToNode"
